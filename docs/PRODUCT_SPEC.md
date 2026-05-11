@@ -3189,7 +3189,7 @@ SecuScan employs a comprehensive testing pyramid:
 **Example Test:**
 
 ```python
-# tests/unit/test_validation.py
+# testing/backend/unit/test_validation.py
 import pytest
 from secuscan.validation import validate_target
 
@@ -3246,7 +3246,7 @@ def test_validate_target_matrix(target, safe_mode, expected):
 **Example:**
 
 ```python
-# tests/integration/test_task_execution.py
+# testing/backend/integration/test_task_execution.py
 import pytest
 import requests
 import time
@@ -3292,7 +3292,7 @@ def test_nmap_scan_workflow(api_client):
 **Test Cases:**
 
 ```python
-# tests/e2e/test_user_workflows.py
+# frontend/testing/e2e/test_user_workflows.py
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -3378,7 +3378,7 @@ jobs:
           pip install pytest pytest-cov
       - name: Run unit tests
         run: |
-          pytest tests/unit/ --cov=secuscan --cov-report=xml
+          pytest testing/backend/unit/ --cov=secuscan --cov-report=xml
       - name: Upload coverage
         uses: codecov/codecov-action@v3
 
@@ -3398,7 +3398,7 @@ jobs:
           sleep 10
       - name: Run integration tests
         run: |
-          pytest tests/integration/
+          pytest testing/backend/integration/
 
   test-e2e:
     runs-on: ubuntu-latest
@@ -3413,7 +3413,7 @@ jobs:
           sleep 10
       - name: Run E2E tests
         run: |
-          pytest tests/e2e/
+          pytest frontend/testing/e2e/
 
   security-scan:
     runs-on: ubuntu-latest

@@ -1,38 +1,55 @@
 # Security Policy
 
-## Supported Versions
+SecuScan is intended for authorized, ethical security testing and learning workflows. If you discover a vulnerability in SecuScan itself, please report it responsibly so it can be fixed without putting users at risk.
 
-Currently, only the latest version of SecuScan is supported.
+## Supported Code Lines
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-| < 1.0   | :x:                |
+We currently provide security fixes on a best-effort basis for:
+
+| Code Line | Status |
+| --- | --- |
+| `main` | Supported |
+| Most recent release or snapshot | Best effort |
+| Older forks, stale branches, or heavily modified local copies | Not guaranteed |
 
 ## Reporting a Vulnerability
 
-If you've found a security vulnerability in SecuScan, please report it to us as soon as possible. Following these guidelines helps maintainers fix the bug and improve the security of the project.
+Please do not report security vulnerabilities through public GitHub issues or pull requests.
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+Preferred disclosure path:
 
-Instead, please send an email to `security@secuscan.local` (placeholder - replace with actual email if available) or report it via a private issue if the platform supports it.
+1. Use GitHub's private vulnerability reporting flow for this repository, if it is enabled.
+2. If private reporting is not available, contact the maintainer directly through GitHub.
 
-### What should be reported?
+Please include as much detail as you can:
 
-- Vulnerabilities in the SecuScan tool itself (e.g., privilege escalation, RCE, sensitive data leakage).
-- Vulnerabilities in the integrated plugins that may affect the user's system.
-- Insecure storage or exposure of scan results.
+- Affected branch, commit, or version
+- Clear reproduction steps
+- Expected impact
+- Logs, screenshots, or proof of concept if safe to share
+- Any suggested mitigation if you already have one
 
-### What should NOT be reported?
+## What Belongs in a Security Report
 
-- Vulnerabilities found in a target using SecuScan (report these to the target's owner!).
-- Bugs that do not have a security impact.
+- Vulnerabilities in the SecuScan backend, frontend, or plugin loading system
+- Authentication, authorization, secrets handling, or encryption issues
+- Unsafe file handling, path traversal, injection, or remote execution risks
+- Findings that expose user data, scan artifacts, or stored credentials
 
-### Our Commitment
+## What Does Not Belong in a Security Report
 
-We will:
-1. Acknowledge your report within 48 hours.
-2. Provide an estimated timeline for a fix.
-3. Notify you once the vulnerability has been resolved.
+- Vulnerabilities in third-party targets scanned with SecuScan
+- General support questions or setup problems
+- Feature requests without a security impact
+- Issues that only exist in unofficial forks unless they can be reproduced here
 
-Thank you for helping keep SecuScan secure!
+## Response Expectations
+
+We aim to:
+
+- Acknowledge a report within 72 hours
+- Triage severity and reproduction details as quickly as possible
+- Share status updates when a fix or mitigation is being prepared
+- Credit reporters when appropriate and when they want to be acknowledged
+
+Thank you for helping keep SecuScan safer for everyone using it responsibly.

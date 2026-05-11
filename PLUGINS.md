@@ -1,131 +1,110 @@
-# SecuScan Plugin Directory
+# SecuScan Plugin Catalogue
 
-> **22 Plugins** across 3 safety tiers — Last synced: 2026-03-25
+This file is a human-readable index of the plugins currently present in `plugins/*/metadata.json`.
 
----
+Last synced: 2026-05-11
 
-## 📡 Network Reconnaissance
+## At a Glance
 
-### 1. 🔍 Nmap — Port Scanning
-**ID:** `nmap` · **Safety:** Safe · **Dependency:** `nmap`
-Comprehensive network discovery and service fingerprinting.
+- Total plugins: 60
+- Safe plugins: 27
+- Intrusive plugins: 25
+- Exploit plugins: 8
+- Source of truth: each plugin's `metadata.json`
 
-### 2. 🌍 Subdomain Discovery — Passive Enum
-**ID:** `subdomain_discovery` · **Safety:** Safe · **Dependency:** `subfinder`
-Passive subdomain enumeration via multiple external sources.
+## Safety Levels
 
-### 3. 🛰️ Scapy Recon — Low-level Probing
-**ID:** `scapy_recon` · **Safety:** Safe · **Dependency:** `scapy`
-Custom packet crafting for ARP/ICMP discovery.
+| Level | Meaning |
+| --- | --- |
+| `safe` | Passive or low-impact discovery that is less likely to modify target state. |
+| `intrusive` | Active probing, crawling, brute-force checks, or remote interaction that can generate noticeable traffic. |
+| `exploit` | Validation or exploitation workflows that can extract data, change state, or create higher operational risk. |
 
-### 4. 🕵️ WHOIS Lookup — Domain Intelligence
-**ID:** `whois_lookup` · **Safety:** Safe · **Dependency:** `whois`
-Registration details and contact information retrieval.
+Only run scans against systems you own or are explicitly authorized to assess.
 
-### 5. 📦 DNS Enumeration — Record Discovery
-**ID:** `dns_enum` · **Safety:** Safe · **Dependency:** `dnsrecon`
-Detailed DNS record analysis and zone transfer testing.
+## Category Summary
 
----
+| Category | Count |
+| --- | ---: |
+| `recon` | 19 |
+| `vulnerability` | 12 |
+| `robots` | 5 |
+| `web` | 5 |
+| `exploit` | 5 |
+| `network` | 3 |
+| `expert` | 3 |
+| `code` | 2 |
+| `forensics` | 2 |
+| `utils` | 2 |
+| `execution` | 1 |
+| `security` | 1 |
 
-## 🌐 Web Reconnaissance
+## Plugin Index
 
-### 6. 🌍 HTTP Inspector — Endpoint Analysis
-**ID:** `http_inspector` · **Safety:** Safe · **Dependency:** `curl`
-Headers, status codes, and basic endpoint verification.
+| Plugin | ID | Category | Safety | Primary Binary | Summary |
+| --- | --- | --- | --- | --- | --- |
+| Amass | `amass` | `recon` | `safe` | `amass` | Deep attack-surface mapping and subdomain discovery. |
+| API Scanner | `api_scanner` | `vulnerability` | `intrusive` | `nuclei` | Check for specific API vulnerabilities (REST and GraphQL). |
+| Cloud Scanner | `cloud_scanner` | `vulnerability` | `intrusive` | `python3` | Cloud infrastructure security (AWS/GCP/Azure). |
+| S3 / Blob Auditor | `cloud_storage_auditor` | `vulnerability` | `safe` | `uncover` | Find misconfigured S3 buckets and exposed cloud storage. |
+| Code Analyzer (Bandit) | `code_analyzer` | `code` | `safe` | `bandit` | Static analysis for Python code. |
+| Container Scan (Trivy) | `container_scanner` | `network` | `safe` | `trivy` | Scan Docker images and registries for known vulnerabilities. |
+| Crawler | `crawler` | `robots` | `intrusive` | `katana` | Recursive web crawler for link discovery. |
+| Directory Discovery | `dir_discovery` | `web` | `intrusive` | `ffuf` | Discover hidden directories and files on web servers. |
+| DNS Reconnaissance | `dns_enum` | `recon` | `safe` | `dnsrecon` | Enumerate DNS records and configurations. |
+| dnsx | `dnsx` | `recon` | `safe` | `dnsx` | DNS resolution and wildcard-aware validation at scale. |
+| Domain Finder | `domain-finder` | `recon` | `safe` | `amass` | Discover additional domain names of target organization. |
+| Drupal Security Scan | `droopescan` | `vulnerability` | `intrusive` | `droopescan` | Drupal-focused CMS scanner for version and surface enumeration. |
+| Payload Fuzzer | `fuzzer` | `robots` | `exploit` | `python3` | Autonomously fuzz target fields with massive dictionaries. |
+| Google Hacking | `google-dorking` | `recon` | `safe` | `python3` | Find publicly indexed information about target. |
+| Password Recovery Audit | `hashcat` | `expert` | `exploit` | `hashcat` | Password recovery and hash audit workflow. |
+| HTTP Inspector | `http_inspector` | `web` | `safe` | `curl` | Inspect HTTP/HTTPS endpoints for headers, cookies, and TLS configuration. |
+| HTTP Request Logger | `http_request_logger` | `exploit` | `intrusive` | `httpx` | Handle incoming HTTP requests and record data. |
+| httpx | `httpx` | `recon` | `safe` | `httpx` | Live host probing with status, title, and technology fingerprinting. |
+| IaC Scanner (Checkov) | `iac_scanner` | `vulnerability` | `safe` | `python3` | Analyze Terraform and CloudFormation code for flaws. |
+| ICMP Ping | `icmp_ping` | `utils` | `safe` | `ping` | Check if a server is live and responds to ICMP Echo requests. |
+| Joomla Security Scan | `joomscan` | `vulnerability` | `intrusive` | `joomscan` | Joomla security scanner for version and common weakness discovery. |
+| Katana | `katana` | `recon` | `intrusive` | `katana` | Web crawling for endpoint and route discovery. |
+| K8s Scanner | `kubernetes_scanner` | `vulnerability` | `intrusive` | `python3` | Kubernetes cluster security assessment. |
+| Exploitation Connector | `metasploit` | `expert` | `exploit` | `msfconsole` | Metasploit connector for controlled exploit-module execution. |
+| Network Scanner | `network_scanner` | `vulnerability` | `intrusive` | `nmap` | Check for 10,000+ CVEs and server misconfigurations. |
+| Nikto | `nikto` | `web` | `intrusive` | `nikto` | Web server vulnerability scanner powered by the Nikto CLI. |
+| Network Scanning | `nmap` | `network` | `safe` | `nmap` | Network discovery and port scanning tool. |
+| Template Vulnerability Scan | `nuclei` | `web` | `intrusive` | `nuclei` | Fast and customizable vulnerability scanner. |
+| Password Auditor | `password_auditor` | `vulnerability` | `intrusive` | `python3` | Discover weak credentials in network services and web apps. |
+| People Hunter | `people-email-discovery` | `recon` | `safe` | `theHarvester` | Discover email addresses and social media profiles. |
+| Port Scanner | `port-scanner` | `recon` | `intrusive` | `nmap` | Detect open ports and fingerprint services. |
+| Advanced Network Recon | `scapy_recon` | `network` | `safe` | `python3` | Advanced network probing using Scapy. |
+| Secret Scanner | `secret_scanner` | `code` | `safe` | `gitleaks` | Scan directories for hardcoded secrets. |
+| Sharepoint Scanner | `sharepoint_scanner` | `vulnerability` | `intrusive` | `nuclei` | Check SharePoint for security issues, misconfigs, and more. |
+| Sitemap Generator | `sitemap_gen` | `robots` | `intrusive` | `katana` | Build complete XML sitemaps by autonomously parsing targets. |
+| Sniper: Auto-Exploiter | `sniper` | `exploit` | `exploit` | `python3` | Validate critical CVEs by automatic exploitation. |
+| Spider | `spider` | `robots` | `intrusive` | `katana` | Advanced web spider with JS execution support. |
+| SQL Injection Feasibility | `sqli_checker` | `expert` | `intrusive` | `ghauri` | SQL injection feasibility scanner powered by Ghauri. |
+| SQLi Exploiter | `sqli_exploiter` | `exploit` | `exploit` | `sqlmap` | Exploit SQL injection in web apps to extract data. |
+| SQL Injection Testing | `sqlmap` | `web` | `exploit` | `sqlmap` | Automatic SQL injection and database takeover tool. |
+| SSH Runner | `ssh_runner` | `execution` | `intrusive` | `ssh` | Remote command execution via SSH. |
+| Subdomain Finder | `subdomain-finder` | `recon` | `safe` | `subfinder` | Discover subdomains of a domain. |
+| Subdomain Scanner | `subdomain_discovery` | `recon` | `safe` | `subfinder` | Enumerate subdomains using passive sources. |
+| Subdomain Takeover | `subdomain_takeover` | `exploit` | `intrusive` | `subfinder` | Discover dangling DNS entries pointing to external services. |
+| Subfinder | `subfinder` | `recon` | `safe` | `subfinder` | Fast passive subdomain enumeration. |
+| theHarvester | `theharvester` | `recon` | `safe` | `theHarvester` | OSINT collection for emails, domains, and hosts. |
+| TLS Security Analysis | `tls_inspector` | `security` | `safe` | `openssl` | Examine TLS/SSL certificates and cipher configurations. |
+| Uncover | `uncover` | `recon` | `safe` | `uncover` | Discover internet-exposed assets from external search sources. |
+| URL Fuzzer | `url-fuzzer-2` | `recon` | `intrusive` | `ffuf` | Discover hidden files and directories. |
+| urlfinder | `urlfinder` | `recon` | `safe` | `urlfinder` | Passive historical URL collection. |
+| Virtual Hosts Finder | `virtual-host-finder` | `recon` | `intrusive` | `ffuf` | Find multiple websites hosted on the same server. |
+| Volatility | `volatility` | `forensics` | `intrusive` | `volatility3` | Memory forensics workflow using Volatility 3 plugins. |
+| WAF Detector | `waf-detection` | `recon` | `safe` | `wafw00f` | Fingerprint the Web Application Firewall behind target app. |
+| WAF Detector | `waf_detector` | `robots` | `safe` | `wafw00f` | Automatically identify Web Application Firewalls protecting targets. |
+| Website Recon | `website-recon-2` | `recon` | `safe` | `httpx` | Fingerprint web technologies of target website. |
+| Domain Registration Lookup | `whois_lookup` | `utils` | `safe` | `python3` | Domain registration information lookup. |
+| WordPress Security Scan | `wpscan` | `vulnerability` | `intrusive` | `wpscan` | WordPress security scanner for plugin, theme, and core risk visibility. |
+| XSS Exploiter | `xss_exploiter` | `exploit` | `exploit` | `python3` | Exploit XSS in real-life attacks to extract cookies and data. |
+| Binary Signature Scan | `yara_scan` | `forensics` | `intrusive` | `yara` | Binary and file-system signature matching with YARA rules. |
+| DAST Web Proxy (ZAP) | `zap_scanner` | `vulnerability` | `exploit` | `python3` | Dynamic proxy spidering and payload injection. |
 
-### 7. 🔐 TLS Inspector — Cipher Audit
-**ID:** `tls_inspector` · **Safety:** Safe · **Dependency:** `openssl`
-SSL/TLS certificate validation and protocol analysis.
+## Maintenance Notes
 
-### 8. 📂 Directory Discovery — Path Fuzzing
-**ID:** `dir_discovery` · **Safety:** Intrusive · **Dependency:** `ffuf`
-Brute-force discovery of hidden files and directories.
-
-### 9. 🔎 Nikto — Web Vulnerability Scanner
-**ID:** `nikto` · **Safety:** Intrusive · **Dependency:** `nikto`
-Comprehensive web server security scanning.
-
-### 10. 🧬 Nuclei — Template-based Scanner
-**ID:** `nuclei` · **Safety:** Intrusive · **Dependency:** `nuclei`
-Fast, template-driven vulnerability detection.
-
-### 11. 🧪 SQLi Checker — Feasibility Test
-**ID:** `sqli_checker` · **Safety:** Intrusive · **Dependency:** `ghauri`
-Lightweight investigation of potential SQL injection vectors.
-
----
-
-## 📝 CMS Security
-
-### 12. 📝 WPScan — WordPress Auditor
-**ID:** `wpscan` · **Safety:** Intrusive · **Dependency:** `wpscan`
-Specialized WordPress vulnerability and plugin scanner.
-
-### 13. 🏷️ JoomScan — Joomla Scanner
-**ID:** `joomscan` · **Safety:** Intrusive · **Dependency:** `joomscan`
-Vulnerability and configuration auditor for Joomla CMS.
-
-### 14. 🛡️ DroopeScan — Drupal/Silverstripe Audit
-**ID:** `droopescan` · **Safety:** Intrusive · **Dependency:** `droopescan`
-Plugin and theme discovery for Drupal and Silverstripe.
-
----
-
-## 🔐 Exploit & Expert Mode
-
-### 15. 💉 SQLMap — SQL Injection Automated
-**ID:** `sqlmap` · **Safety:** Exploit · **Dependency:** `sqlmap`
-Full-featured SQL injection exploitation and database takeover.
-
-### 16. 🚀 Metasploit — Exploit Connector
-**ID:** `metasploit` · **Safety:** Intrusive · **Dependency:** `msfconsole`
-Integration with the Metasploit framework for advanced exploitation.
-
-### 17. ⚡ Hashcat — Password Recovery
-**ID:** `hashcat` · **Safety:** Intrusive · **Dependency:** `hashcat`
-High-speed GPU-capable (emulated) password cracking.
-
----
-
-## 🔬 Forensics & Analysis
-
-### 18. 🔬 YARA — Pattern Matching
-**ID:** `yara_scan` · **Safety:** Intrusive · **Dependency:** `yara`
-Forensic logic and malware pattern matching.
-
-### 19. 🧠 Volatility — Memory Forensics
-**ID:** `volatility` · **Safety:** Intrusive · **Dependency:** `volatility3`
-Advanced memory image analysis and artifact extraction.
-
----
-
-## 💻 System & Code Security
-
-### 20. 🔑 Secret Scanner — Leak Detection
-**ID:** `secret_scanner` · **Safety:** Safe · **Dependency:** `gitleaks`
-Detection of hardcoded secrets in source code and history.
-
-### 21. 🛡️ Bandit — Static Code Analysis
-**ID:** `code_analyzer` · **Safety:** Safe · **Dependency:** `bandit`
-Security-focused static analysis for Python projects.
-
-### 22. 💻 SSH Runner — Auth & Config Audit
-**ID:** `ssh_runner` · **Safety:** Intrusive · **Dependency:** `ssh`
-Verification of SSH configurations and authorized access.
-
----
-
-## Safety Metrics
-
-| Tier | Count | Description |
-|------|-------|-------------|
-| **Safe** | 9 | Passive observation, low impact |
-| **Intrusive**| 12 | Active probing, high traffic |
-| **Exploit** | 1 | Potential state modification |
-| **Total** | **22** | |
-
----
-
-**Last Updated:** 2026-03-25  
-**Version:** 1.3.0 (Phase 3 Verified)
+- If a plugin is added, renamed, or removed, update this file from the plugin metadata rather than editing counts by hand.
+- Prefer keeping `id`, category, safety level, and dependency names aligned with each plugin's `metadata.json`.

@@ -2,19 +2,46 @@
 name: Feature request
 about: Suggest an idea for SecuScan
 title: '[FEAT] '
-labels: enhancement
+labels: feature
 assignees: ''
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+## Summary
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+Describe the feature in 1-3 sentences.
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+## Problem
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+What current gap, friction, or missing capability does this address?
+
+## Proposed solution
+
+Describe the expected behavior or implementation direction.
+
+## Suggested scope
+
+If you already know the likely implementation area, mention it here:
+
+- Suggested files or directories:
+- Related route, page, component, API, or plugin:
+
+## Acceptance criteria
+
+List the minimum requirements for this feature to be considered done:
+
+- [ ]
+- [ ]
+- [ ]
+
+## Test plan
+
+Explain how a contributor or maintainer can verify the feature works.
+
+## Alternatives considered
+
+List any alternatives or tradeoffs you considered.
+
+## Additional context
+
+Add any extra context, screenshots, or links here.
