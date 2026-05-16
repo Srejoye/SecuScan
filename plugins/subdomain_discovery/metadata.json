@@ -10,7 +10,7 @@
     "email": "dev@secuscan.local"
   },
   "license": "MIT",
-  "icon": "🌐",
+  "icon": "\ud83c\udf10",
   "engine": {
     "type": "cli",
     "binary": "subfinder"
@@ -88,5 +88,5 @@
     "system_packages": []
   },
   "docker_image": "projectdiscovery/subfinder:latest",
-  "checksum": "648977df34172db63bf47bd9c2b2df8cf163f02f4325da5f239ef45dd2c1f5de"
+  "checksum": "233b74d7f8a2f84a45fbfbcd19523fe97098d5e70bd8466232627251cde80948"
 }

@@ -10,7 +10,7 @@
     "email": "dev@secuscan.local"
   },
   "license": "MIT",
-  "icon": "🔐",
+  "icon": "\ud83d\udd10",
   "engine": {
     "type": "cli",
     "binary": "openssl"
@@ -137,5 +137,5 @@
     "system_packages": []
   },
   "docker_image": "alpine:latest",
-  "checksum": "f3a1d37b625cb1bf5c93e87fa61d2ec0f108ca556fd3da66a308f4965d477307"
+  "checksum": "6e82c01aec4fd69e8f2d4bc8e339bfab408abacc50d2e83db0d6977a6f9bd00a"
 }

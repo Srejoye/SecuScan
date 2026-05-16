@@ -10,7 +10,7 @@
     "email": "dev@secuscan.local"
   },
   "license": "MIT",
-  "icon": "🔍",
+  "icon": "\ud83d\udd0d",
   "engine": {
     "type": "cli",
     "binary": "nmap"
@@ -202,5 +202,5 @@
     "system_packages": []
   },
   "docker_image": "instrumentisto/nmap",
-  "checksum": "b354b8f86c7428af8fcbf2280dd45637e29e2663f1245dd6963f25659f67cc91"
+  "checksum": "c9bf82f9f4b95402a5c30ab07149e8c444527ff7ea68ac5d446da7cbec1aed26"
 }

@@ -10,7 +10,7 @@
     "email": "dev@secuscan.local"
   },
   "license": "MIT",
-  "icon": "🛠️",
+  "icon": "\ud83d\udee0\ufe0f",
   "engine": {
     "type": "cli",
     "binary": "python3"
@@ -54,5 +54,5 @@
     "python_packages": [],
     "system_packages": []
   },
-  "checksum": "86d42936b4c1f417e89d8e3c1e23e023057d52ef6d68f7a021c6e0bd82623bbf"
+  "checksum": "719fc84dd11202e8b40bf99324ed29b8afaa0dd650d30e179d396da5c2c3de2a"
 }

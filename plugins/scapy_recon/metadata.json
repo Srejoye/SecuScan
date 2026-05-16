@@ -10,7 +10,7 @@
     "email": "dev@secuscan.local"
   },
   "license": "MIT",
-  "icon": "📡",
+  "icon": "\ud83d\udce1",
   "engine": {
     "type": "cli",
     "binary": "python3"
@@ -86,5 +86,5 @@
     ]
   },
   "docker_image": "secdev/scapy:latest",
-  "checksum": "43dfd28771eaa4bf5efd970fd31a579a0235c501fde10297acb53f980563852d"
+  "checksum": "f9860c911d72e5298b21c991eedb2b8df12a4ee308039561a8d9f4eb66c83005"
 }

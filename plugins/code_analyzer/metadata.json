@@ -10,7 +10,7 @@
     "email": "dev@secuscan.local"
   },
   "license": "MIT",
-  "icon": "📃",
+  "icon": "\ud83d\udcc3",
   "engine": {
     "type": "cli",
     "binary": "bandit"
@@ -88,5 +88,5 @@
     "system_packages": []
   },
   "docker_image": "pyfound/bandit:latest",
-  "checksum": "c321d9f5897356df5d600bac06b322a0f6d9f00b51212776156500eebbbd11e6"
+  "checksum": "24fe8a093926f3913753a0d41b7fdc280dff52e9bd035f0569ef02f124838252"
 }

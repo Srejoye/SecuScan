@@ -10,7 +10,7 @@
     "email": "dev@secuscan.local"
   },
   "license": "MIT",
-  "icon": "📦",
+  "icon": "\ud83d\udce6",
   "engine": {
     "type": "cli",
     "binary": "dnsrecon"
@@ -88,5 +88,5 @@
     ]
   },
   "docker_image": "darkoperator/dnsrecon:latest",
-  "checksum": "df85d058a6f97e650a7160d52f1a2bb91dd80b1cdeb9aac215df8cd30e4a8fbe"
+  "checksum": "1bb635fe9948ff4e3c2d8582c9060a4b0cd50a8f3a46083a2a7b4417f73cf71e"
 }

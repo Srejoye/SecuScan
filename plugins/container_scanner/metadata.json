@@ -10,7 +10,7 @@
     "email": "dev@secuscan.local"
   },
   "license": "Apache-2.0",
-  "icon": "📦",
+  "icon": "\ud83d\udce6",
   "engine": {
     "type": "cli",
     "binary": "trivy"
@@ -67,5 +67,5 @@
     "system_packages": []
   },
   "docker_image": "aquasec/trivy",
-  "checksum": "c2672a7a03c2fd17a1b671a7cdf93d6ac12b8d584e92cb661941c72c75327e37"
+  "checksum": "9abee62af1a281a8c327c38e225c26041b6371025d7fa42f8b2a6b26c40c9225"
 }
