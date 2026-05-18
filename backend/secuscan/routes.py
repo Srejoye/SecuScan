@@ -187,15 +187,7 @@ async def start_task(
     if not can_execute:
         raise HTTPException(status_code=429, detail=error_msg)
 
-    # Check concurrent task limit
-    available_slots = await concurrent_limiter.get_available_slots()
-    if available_slots <= 0:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Maximum concurrent tasks ({concurrent_limiter.max_concurrent}) reached. Try again later."
-        )
-
-    # Create task
+    # Create task record first so we have a real task_id for the limiter
     try:
         task_id = await executor.create_task(
             request.plugin_id,
@@ -203,24 +195,29 @@ async def start_task(
             request.preset,
             request.consent_granted
         )
-
-        # Acquire a real slot now that we have the actual task_id
-        await concurrent_limiter.acquire(task_id)
-
-        # Execute task in background
-        background_tasks.add_task(executor.execute_task, task_id)
-        await invalidate_view_cache()
-
-        return {
-            "task_id": task_id,
-            "status": "queued",
-            "created_at": "now",
-            "stream_url": f"/api/v1/task/{task_id}/stream"
-        }
-
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 
+    # Atomically acquire a concurrency slot using the real task_id.
+    # acquire() is lock-protected internally, so the check and register
+    # happen in a single operation — no TOCTOU window between requests.
+    can_acquire, error_msg = await concurrent_limiter.acquire(task_id)
+    if not can_acquire:
+        # Roll back: mark the DB row failed so it isn't left orphaned
+        await executor.mark_task_failed(task_id, reason="Concurrency limit reached; task was not started")
+        raise HTTPException(status_code=503, detail=error_msg)
+
+    # Slot is held — schedule execution.
+    # execute_task releases the slot in its finally block on every exit path.
+    background_tasks.add_task(executor.execute_task, task_id)
+    await invalidate_view_cache()
+
+    return {
+        "task_id": task_id,
+        "status": "queued",
+        "created_at": "now",
+        "stream_url": f"/api/v1/task/{task_id}/stream"
+    }
 
 @router.get("/task/{task_id}/status")
 async def get_task_status(task_id: str):
