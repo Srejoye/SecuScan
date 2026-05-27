@@ -13,7 +13,7 @@ from typing import Optional, Dict, Any, List
 import logging
 import re
 
-from .redaction import redact
+from .redaction import redact, redact_dict
 from .cache import get_cache
 from .config import settings
 from .database import get_db
@@ -676,6 +676,7 @@ class TaskExecutor:
 
         # Insert findings
         for finding in findings_data:
+            finding = redact_dict(finding)   
             u_id = str(uuid.uuid4()).replace("-", "")
             finding_id = f"finding:{task_id}:{u_id[:8]}"
 
@@ -761,6 +762,7 @@ class TaskExecutor:
         
         # Insert findings
         for finding in findings_data:
+            finding = redact_dict(finding)   
             u_id = str(uuid.uuid4()).replace("-", "")
             finding_id = f"finding:{task_id}:{u_id[:8]}"
 
