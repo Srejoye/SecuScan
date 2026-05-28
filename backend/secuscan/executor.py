@@ -22,7 +22,6 @@ from .models import TaskStatus
 from .ratelimit import concurrent_limiter
 from .risk_scoring import compute_risk_score, compute_risk_factors
 
-
 def _parse_discovered_at(finding: dict) -> Optional[datetime]:
     """Extract and parse discovered_at from a finding dict, or return current UTC time."""
     raw = finding.get("discovered_at")
@@ -754,7 +753,7 @@ class TaskExecutor:
                 f"{plugin.name} Report",
                 "technical",
                 "ready" if status == TaskStatus.COMPLETED.value else "failed",
-                len(finding),
+                len(redacted_findings),
                 1,
             ),
         )
@@ -842,7 +841,7 @@ class TaskExecutor:
                 f"{scanner.name} Report",
                 "professional" if status == TaskStatus.COMPLETED.value else "failed",
                 "ready" if status == TaskStatus.COMPLETED.value else "failed",
-                len(findings_data),
+                len(redacted_findings),
                 2, # Professional reports are typically multi-page
             ),
         )
