@@ -666,17 +666,20 @@ class TaskExecutor:
     async def _upsert_findings_and_report(self, db, task_id: str, plugin, plugin_id: str, target: str, status: str, output: str = ""):
         """Persist derived findings and report records into SQLite."""
         parsed = self._parse_results(plugin, output)
-        findings_data = parsed.get("findings", [])
 
-        # Update task with structured results
+        # Redact all findings before any DB write — this covers both the
+        # structured_json column on the tasks table AND the findings table rows.
+        redacted_findings = [redact_dict(f) for f in parsed.get("findings", [])]
+        parsed["findings"] = redacted_findings
+
+        # Update task with structured results — uses the already-redacted parsed dict
         await db.execute(
             "UPDATE tasks SET structured_json = ? WHERE id = ?",
             (json.dumps(parsed), task_id)
         )
 
-        # Insert findings
-        for finding in findings_data:
-            finding = redact_dict(finding)
+        # Insert findings — already redacted above
+        for finding in redacted_findings:
             u_id = str(uuid.uuid4()).replace("-", "")
             finding_id = f"finding:{task_id}:{u_id[:8]}"
 
@@ -751,18 +754,19 @@ class TaskExecutor:
                 f"{plugin.name} Report",
                 "technical",
                 "ready" if status == TaskStatus.COMPLETED.value else "failed",
-                len(findings_data),
+                len(finding),
                 1,
             ),
         )
 
     async def _upsert_findings_and_report_from_scanner(self, db, task_id: str, scanner: Any, plugin_id: str, target: str, status: str, result: Dict[str, Any]):
         """Persist modular scanner results into findings, and reports."""
-        findings_data = result.get("findings", [])
+        # Redact all findings before any DB write
+        redacted_findings = [redact_dict(f) for f in result.get("findings", [])]
+        result["findings"] = redacted_findings
 
-        # Insert findings
-        for finding in findings_data:
-            finding = redact_dict(finding)
+        # Insert findings — already redacted above
+        for finding in redacted_findings:
             u_id = str(uuid.uuid4()).replace("-", "")
             finding_id = f"finding:{task_id}:{u_id[:8]}"
 

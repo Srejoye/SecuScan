@@ -147,7 +147,7 @@ async def test_upsert_findings_redacts_description_before_insert(
             output="",
         )
 
-    # Check the DB row — secret must not be present
+    # Check the findings table row — secret must not be present
     row = await db.fetchone(
         "SELECT description, remediation FROM findings WHERE task_id = ?",
         (task_id,),
@@ -159,3 +159,17 @@ async def test_upsert_findings_redacts_description_before_insert(
     )
     assert secret not in row["remediation"]
     assert "[REDACTED]" in row["description"]
+
+    # Regression: structured_json on the tasks table must also be redacted
+    task_row = await db.fetchone(
+        "SELECT structured_json FROM tasks WHERE id = ?",
+        (task_id,),
+    )
+    assert task_row is not None
+    structured = json.loads(task_row["structured_json"])
+    findings_in_structured = structured.get("findings", [])
+    assert len(findings_in_structured) > 0
+    assert secret not in findings_in_structured[0]["description"], (
+        "Secret found in tasks.structured_json — "
+        "parsed dict must be redacted before the structured_json write"
+    )
