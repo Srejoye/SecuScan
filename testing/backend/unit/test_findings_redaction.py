@@ -1,166 +1,172 @@
 """
-Regression tests: finding description, remediation, and proof must be
-redacted before being written to the findings table.
+Unit and integration tests for findings redaction before DB persistence.
 
-redact_dict() already existed in redaction.py but was never called on
-findings before storage. These tests verify it is now called on both
-insert paths: _upsert_findings_and_report and
-_upsert_findings_and_report_from_scanner.
+Verifies that secrets are stripped from finding fields (description,
+remediation, proof) and from tasks.structured_json before any DB write.
+
+Run with:
+    ./testing/test_python.sh
+or directly:
+    pytest testing/backend/unit/test_findings_redaction.py -v
 """
 
+import asyncio
 import json
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.secuscan.redaction import redact_dict
+from backend.secuscan.redaction import redact_dict, REDACTED
 
 
-# ---------------------------------------------------------------------------
-# Unit: redact_dict handles finding shapes correctly
-# ---------------------------------------------------------------------------
+# ── Fake AWS key used across tests ────────────────────────────────────────────
+
+FAKE_AWS_KEY = "AKIAIOSFODNN7EXAMPLE"
+
+
+# ── Unit tests: redact_dict behaviour ─────────────────────────────────────────
 
 def test_redact_dict_redacts_aws_key_in_description():
+    """Secret in description and remediation is replaced with [REDACTED]."""
     finding = {
-        "title": "Open Port",
-        "description": "Found key AKIAIOSFODNN7EXAMPLE in config",
-        "remediation": "Remove AKIAIOSFODNN7EXAMPLE from source",
-        "severity": "high",
+        "title": "Exposed credential",
+        "category": "Secrets",
+        "severity": "critical",
+        "description": f"Found credential {FAKE_AWS_KEY} in config.",
+        "remediation": f"Rotate the key {FAKE_AWS_KEY} immediately.",
     }
     result = redact_dict(finding)
-    assert "AKIAIOSFODNN7EXAMPLE" not in result["description"]
-    assert "AKIAIOSFODNN7EXAMPLE" not in result["remediation"]
-    assert "[REDACTED]" in result["description"]
+    assert REDACTED in result["description"]
+    assert FAKE_AWS_KEY not in result["description"]
+    assert REDACTED in result["remediation"]
+    assert FAKE_AWS_KEY not in result["remediation"]
 
 
 def test_redact_dict_leaves_clean_finding_unchanged():
+    """Clean findings with no secrets pass through unmodified."""
     finding = {
-        "title": "Open Port 80",
-        "description": "Port 80 is open and running http",
-        "remediation": "Close unnecessary ports",
+        "title": "Open Port",
+        "category": "Network",
         "severity": "low",
+        "description": "Port 80 is open and running http.",
+        "remediation": "Close unnecessary ports.",
     }
     result = redact_dict(finding)
     assert result["description"] == finding["description"]
     assert result["remediation"] == finding["remediation"]
+    assert result["title"] == finding["title"]
 
 
 def test_redact_dict_handles_nested_metadata():
+    """Nested metadata dict is walked recursively; non-strings are untouched."""
     finding = {
-        "title": "Secret Found",
-        "description": "clean description",
+        "title": "Secret in metadata",
+        "severity": "high",
+        "description": "See metadata.",
         "metadata": {
-            "raw_value": "password=hunter2",
+            "raw_value": f"key={FAKE_AWS_KEY}",
             "port": 443,
+            "nested": {"token": f"Bearer {FAKE_AWS_KEY}"},
         },
     }
     result = redact_dict(finding)
-    assert "hunter2" not in result["metadata"]["raw_value"]
-    assert result["metadata"]["port"] == 443  # non-string left untouched
+    assert FAKE_AWS_KEY not in result["metadata"]["raw_value"]
+    assert result["metadata"]["port"] == 443
+    assert FAKE_AWS_KEY not in result["metadata"]["nested"]["token"]
 
 
 def test_redact_dict_handles_none_proof():
+    """None proof field does not raise and is returned as-is."""
     finding = {
         "title": "Finding",
-        "description": "clean",
+        "severity": "info",
+        "description": "No proof available.",
         "proof": None,
     }
-    # Must not raise — None is not a string
     result = redact_dict(finding)
     assert result["proof"] is None
 
 
 def test_redact_dict_handles_missing_keys_gracefully():
-    finding = {"title": "Minimal finding", "severity": "info"}
+    """Minimal finding dict with no description/remediation/proof works fine."""
+    finding = {"title": "Bare finding", "severity": "low"}
     result = redact_dict(finding)
-    assert result["title"] == "Minimal finding"
+    assert result["title"] == "Bare finding"
+    assert result["severity"] == "low"
 
 
-# ---------------------------------------------------------------------------
-# Integration: executor INSERT paths call redact_dict
-# ---------------------------------------------------------------------------
+# ── Integration test: DB persistence paths ────────────────────────────────────
 
 @pytest.mark.asyncio
-async def test_upsert_findings_redacts_description_before_insert(
-    setup_test_environment,
-):
+async def test_upsert_findings_redacts_description_before_insert():
     """
-    _upsert_findings_and_report must call redact_dict on each finding
-    before the INSERT so secrets never reach the DB.
+    After _upsert_findings_and_report is called:
+    1. The findings table row must not contain the raw secret.
+    2. tasks.structured_json must not contain the raw secret.
     """
     from backend.secuscan.executor import TaskExecutor
-    from backend.secuscan.database import init_db, get_db
     from backend.secuscan.config import settings
+    from backend.secuscan.database import get_db, init_db
+    from backend.secuscan.plugins import get_plugin_manager, init_plugins
 
-    await init_db(settings.database_path)
-    db = await get_db()
+    try:
+        pm = get_plugin_manager()
+    except RuntimeError:
+        await init_plugins(settings.plugins_dir)
+        pm = get_plugin_manager()
+
+    plugin_id = next(iter(pm._plugins))
+    plugin = pm.get_plugin(plugin_id)
 
     task_id = str(uuid.uuid4())
+    db = await get_db()
+
     await db.execute(
         """
-        INSERT INTO tasks (id, plugin_id, tool_name, target, inputs_json,
-                           status, consent_granted, safe_mode)
+        INSERT INTO tasks (id, plugin_id, tool_name, target, inputs_json, status, scan_phase, safe_mode)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (task_id, "nmap", "nmap", "127.0.0.1",
-         '{"target":"127.0.0.1"}', "completed", 1, 1),
+        (task_id, plugin_id, plugin.name, "example.com",
+         json.dumps({"target": "example.com"}), "running", "running_command", 0),
     )
 
+    tainted_finding = {
+        "title": "Exposed AWS key",
+        "category": "Secrets",
+        "severity": "critical",
+        "description": f"AWS key found: {FAKE_AWS_KEY}",
+        "remediation": f"Rotate {FAKE_AWS_KEY} immediately.",
+        "proof": f"curl response contained {FAKE_AWS_KEY}",
+        "metadata": {},
+    }
+
     executor = TaskExecutor()
-
-    mock_plugin = MagicMock()
-    mock_plugin.name = "nmap"
-    mock_plugin.id = "nmap"
-    mock_plugin.category = "Network"
-    mock_plugin.output = {"parser": "builtin_nmap", "format": "text"}
-
-    # Finding whose description contains a secret
-    secret = "AKIAIOSFODNN7EXAMPLE"
-    findings_data = [
-        {
-            "title": "Open Port",
-            "category": "Network",
-            "severity": "low",
-            "description": f"Found credential {secret} in banner",
-            "remediation": f"Remove {secret}",
-            "proof": None,
-            "cvss": None,
-            "cve": None,
-            "metadata": {},
-        }
-    ]
-
-    with patch.object(executor, "_parse_results") as mock_parse, \
-         patch("backend.secuscan.executor.get_plugin_manager"):
-        mock_parse.return_value = {
-            "findings": findings_data,
-            "count": 1,
-        }
+    with patch.object(executor, "_parse_results", return_value={"findings": [tainted_finding]}):
         await executor._upsert_findings_and_report(
             db=db,
             task_id=task_id,
-            plugin=mock_plugin,
-            plugin_id="nmap",
-            target="127.0.0.1",
+            plugin=plugin,
+            plugin_id=plugin_id,
+            target="example.com",
             status="completed",
             output="",
         )
 
-    # Check the findings table row — secret must not be present
+    # Assert: findings table row is clean
     row = await db.fetchone(
-        "SELECT description, remediation FROM findings WHERE task_id = ?",
+        "SELECT description, remediation, proof FROM findings WHERE task_id = ?",
         (task_id,),
     )
-    assert row is not None
-    assert secret not in row["description"], (
-        f"Secret found in DB description: {row['description']!r}\n"
-        "redact_dict() was not called before INSERT"
-    )
-    assert secret not in row["remediation"]
-    assert "[REDACTED]" in row["description"]
+    assert row is not None, "No finding row was inserted"
+    assert FAKE_AWS_KEY not in (row["description"] or ""), \
+        f"Secret still in findings.description: {row['description']!r}"
+    assert FAKE_AWS_KEY not in (row["remediation"] or ""), \
+        f"Secret still in findings.remediation: {row['remediation']!r}"
+    assert FAKE_AWS_KEY not in (row["proof"] or ""), \
+        f"Secret still in findings.proof: {row['proof']!r}"
 
-    # Regression: structured_json on the tasks table must also be redacted
+    # Assert: structured_json is also clean
     task_row = await db.fetchone(
         "SELECT structured_json FROM tasks WHERE id = ?",
         (task_id,),
@@ -168,8 +174,11 @@ async def test_upsert_findings_redacts_description_before_insert(
     assert task_row is not None
     structured = json.loads(task_row["structured_json"])
     findings_in_structured = structured.get("findings", [])
-    assert len(findings_in_structured) > 0
-    assert secret not in findings_in_structured[0]["description"], (
-        "Secret found in tasks.structured_json — "
-        "parsed dict must be redacted before the structured_json write"
-    )
+    assert findings_in_structured, "structured_json contained no findings"
+    first = findings_in_structured[0]
+    assert FAKE_AWS_KEY not in (first.get("description") or ""), \
+        f"Secret still in structured_json finding description: {first.get('description')!r}"
+    assert FAKE_AWS_KEY not in (first.get("remediation") or ""), \
+        f"Secret still in structured_json finding remediation: {first.get('remediation')!r}"
+    assert FAKE_AWS_KEY not in (first.get("proof") or ""), \
+        f"Secret still in structured_json finding proof: {first.get('proof')!r}"

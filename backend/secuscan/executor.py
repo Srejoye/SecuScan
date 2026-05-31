@@ -22,6 +22,7 @@ from .models import TaskStatus, ScanPhase
 from .ratelimit import concurrent_limiter
 from .risk_scoring import compute_risk_score, compute_risk_factors
 
+
 def _parse_discovered_at(finding: dict) -> Optional[datetime]:
     """Extract and parse discovered_at from a finding dict, or return current UTC time."""
     raw = finding.get("discovered_at")
@@ -80,6 +81,7 @@ def extract_target(inputs: Dict[str, Any]) -> str:
         or inputs.get("domain")
         or ""
     )
+
 class TaskExecutor:
     """Executes security scanning tasks in isolated environments"""
 
@@ -430,11 +432,6 @@ class TaskExecutor:
             logger.info(f"Task {task_id} completed in {duration:.2f}s")
 
         except asyncio.CancelledError:
-            # CancelledError inherits from BaseException, not Exception —
-            # it bypasses the broad except below, so we handle it explicitly.
-            # Task.cancelled() returns False while the finally block is still
-            # executing, so this is the only reliable place to write the
-            # cancellation status to the DB.
             duration = (time.time() - start_time) if 'start_time' in locals() else 0
             await db.execute(
                 """
@@ -454,12 +451,11 @@ class TaskExecutor:
             )
             await self._broadcast(task_id, "status", TaskStatus.CANCELLED.value)
             await self._invalidate_cached_views()
-            raise  # let asyncio complete the cancellation
+            raise
 
         except Exception as e:
             logger.error(f"Task {task_id} failed: {e}", exc_info=True)
 
-            # Update task as failed
             duration = (time.time() - start_time) if 'start_time' in locals() else 0
             await db.execute(
                 """
@@ -490,8 +486,6 @@ class TaskExecutor:
                 task_id=task_id
             )
         finally:
-            # Always clean up: remove from the in-memory registry and
-            # release the concurrency slot regardless of how the task ended.
             self.running_tasks.pop(task_id, None)
             await concurrent_limiter.release(task_id)
 
@@ -544,7 +538,6 @@ class TaskExecutor:
                 return "".join(output_lines) + "\nTask timed out", -1
 
             except asyncio.CancelledError:
-                # Handle task cancellation by killing the subprocess
                 logger.warning(f"Task {task_id} cancelled. Killing process {process.pid}")
                 try:
                     process.kill()
@@ -624,7 +617,6 @@ class TaskExecutor:
         task = self.running_tasks[task_id]
         task.cancel()
 
-        # If docker is enabled, forcefully kill the sandbox container
         if settings.docker_enabled:
             try:
                 killer = await asyncio.create_subprocess_exec(
@@ -701,19 +693,18 @@ class TaskExecutor:
         """Persist derived findings and report records into SQLite."""
         parsed = self._parse_results(plugin, output)
 
-        # Redact all findings before any DB write — this covers both the
-        # structured_json column on the tasks table AND the findings table rows.
-        redacted_findings = [redact_dict(f) for f in parsed.get("findings", [])]
-        parsed["findings"] = redacted_findings
+        # Redact all findings before any persistence path (structured_json AND findings table)
+        parsed["findings"] = [redact_dict(f) for f in parsed.get("findings", [])]
+        findings_data = parsed["findings"]
 
-        # Update task with structured results — uses the already-redacted parsed dict
+        # Update task with structured results (uses the already-redacted parsed dict)
         await db.execute(
             "UPDATE tasks SET structured_json = ? WHERE id = ?",
             (json.dumps(parsed), task_id)
         )
 
-        # Insert findings — already redacted above
-        for finding in redacted_findings:
+        # Insert findings
+        for finding in findings_data:
             u_id = str(uuid.uuid4()).replace("-", "")
             finding_id = f"finding:{task_id}:{u_id[:8]}"
 
@@ -788,19 +779,27 @@ class TaskExecutor:
                 f"{plugin.name} Report",
                 "technical",
                 "ready" if status == TaskStatus.COMPLETED.value else "failed",
-                len(redacted_findings),
+                len(findings_data),
                 1,
             ),
         )
 
     async def _upsert_findings_and_report_from_scanner(self, db, task_id: str, scanner: Any, plugin_id: str, target: str, status: str, result: Dict[str, Any]):
         """Persist modular scanner results into findings, and reports."""
-        # Redact all findings before any DB write
+
+        # Redact all findings before any persistence path (structured_json AND findings table)
         redacted_findings = [redact_dict(f) for f in result.get("findings", [])]
         result["findings"] = redacted_findings
+        findings_data = redacted_findings
 
-        # Insert findings — already redacted above
-        for finding in redacted_findings:
+        # Update task with redacted structured results
+        await db.execute(
+            "UPDATE tasks SET structured_json = ? WHERE id = ?",
+            (json.dumps(result), task_id)
+        )
+
+        # Insert findings
+        for finding in findings_data:
             u_id = str(uuid.uuid4()).replace("-", "")
             finding_id = f"finding:{task_id}:{u_id[:8]}"
 
@@ -877,7 +876,7 @@ class TaskExecutor:
                 "professional" if status == TaskStatus.COMPLETED.value else "failed",
                 "ready" if status == TaskStatus.COMPLETED.value else "failed",
                 len(redacted_findings),
-                2, # Professional reports are typically multi-page
+                2,
             ),
         )
 
@@ -1041,7 +1040,6 @@ class TaskExecutor:
             return findings
 
         if isinstance(data, dict):
-            # Common scanner shape: { "results": [...] }
             for list_key in ("results", "findings", "issues", "vulnerabilities"):
                 if isinstance(data.get(list_key), list):
                     for idx, item in enumerate(data[list_key], start=1):
@@ -1082,7 +1080,6 @@ class TaskExecutor:
         ports = []
         services = []
 
-        # Regex for open ports: 80/tcp open http
         port_pattern = re.compile(r"(\d+)/(tcp|udp)\s+open\s+([\w-]+)")
         for match in port_pattern.finditer(output):
             port_str, proto, service = match.groups()
