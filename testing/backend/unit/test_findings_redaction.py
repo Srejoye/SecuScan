@@ -116,7 +116,7 @@ async def test_upsert_findings_redacts_description_before_insert():
         await init_plugins(settings.plugins_dir)
         pm = get_plugin_manager()
 
-    plugin_id = next(iter(pm._plugins))
+    plugin_id = next(iter(pm.plugins))
     plugin = pm.get_plugin(plugin_id)
 
     task_id = str(uuid.uuid4())
